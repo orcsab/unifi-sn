@@ -14,9 +14,26 @@ snPass = getpass.getpass(prompt='ServiceNow Password: ', stream=None)
 
 controller = Unifi("raspberrypi.local", 8443, unifiAdmin, unifiPass)
 name = controller.getSiteName("SingHonk")
-controller.printDevices(name)
-controller.printClients(name)
+activeClients = controller.getClients(name)
+print ('ACTIVE CLIENTS')
+pprint (activeClients)
 
 sn = ServiceNow ('https://drummonds.service-now.com', snAdmin, snPass)
-records = sn.getRecords('u_fridge')
-pprint (records)
+ledger = sn.getRecords('x_snc_home_wifi_clients')
+
+print ('LEDGER')
+pprint (ledger)
+
+for c in activeClients:
+    found = 0
+    for item in ledger:
+        if item['id'] == c['_id']:
+            found = 1
+
+    if found == 0:
+        r = {
+            "id": c['_id'],
+            "name": c['hostname']
+        }
+        print (f'adding record {r}')
+        sn.addRecord ('x_snc_home_wifi_clients', r)

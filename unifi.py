@@ -60,7 +60,7 @@ class Unifi:
             print(f"Upgradable?     {device['upgradable']}")
             print(' ')
 
-    def printClients (self, siteName):
+    def getClients (self, siteName, id = ''):
         getClientsUrl = f'api/s/{siteName}/stat/sta'
         url = f"https://{self.host}:{self.port}/{getClientsUrl}"
         response = self.session.get(url, headers=self.headers,
@@ -68,10 +68,15 @@ class Unifi:
         pprint (response)
         api_data = response.json()
         responseList = api_data['data']
+        reply = []
         for r in responseList:
-            print (f"Client: {r['hostname']}")
-            print (f"Signal: {r['signal']}")
-            print (f"Noise: {r['noise']}")
+            if id != '' and r['_id'] == id:
+                reply.append(r)
+            elif id == '':
+                reply.append(r)
+
+        return reply
+
 
     def getSiteName (self, desc):
         # Set up to get site name
