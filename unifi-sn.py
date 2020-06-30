@@ -1,7 +1,7 @@
 # From https://github.com/DataKnox/CodeSamples
 
 import getpass
-from pprint import pprint
+import datetime
 
 from unifi import Unifi
 from sn import ServiceNow
@@ -17,16 +17,12 @@ snTable = 'x_snc_home_wifi_clients'
 controller = Unifi("raspberrypi.local", 8443, unifiAdmin, unifiPass)
 name = controller.getSiteName("SingHonk")
 activeClients = controller.getClients(name)
-print ('ACTIVE CLIENTS')
-pprint (activeClients)
+timestamp = datetime.datetime.utcnow().replace(microsecond=0).isoformat()
 
 # Get the last recording of active clients from the wifi client table in my
 # instance.
 sn = ServiceNow ('https://drummonds.service-now.com', snAdmin, snPass)
 ledger = sn.getRecords(snTable)
-
-print ('LEDGER')
-pprint (ledger)
 
 # This loop will add to the table (ledger) any active clients that it does
 # not know about. It will also record time series in MetricBase for each
@@ -48,5 +44,5 @@ for c in activeClients:
 
     metrics = ['noise', 'signal', 'latest_assoc_time', 'satisfaction', 'assoc_time']
     for m in metrics:
-        print (f'addMetric for {c["hostname"]}: {snTable}, {sysId}, {m}, {c[m]}')
-        sn.addMetric(snTable, sysId, m, c[m])
+        print (f'addMetric for {c["hostname"]}: {snTable}, {sysId}, {m}, {c[m]}, {timestamp}')
+        sn.addMetric(snTable, sysId, m, c[m], timestamp)

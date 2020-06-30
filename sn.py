@@ -45,7 +45,12 @@ class ServiceNow:
 
     # addMetric
     # Add a metric to the time series. Table, sysId and metric name must be specified.
-    def addMetric (self, table, sysId, metric, value):
+    # table: the table containing the sysId
+    # sysId: the record (in the above table) to which the metric should be attached
+    # metric: the name of the metric (timeseries)
+    # value: the value to store
+    # timestamp: the timestamp at which the metric was measured/observed
+    def addMetric (self, table, sysId, metric, value, timestamp):
         url = f'{self.instance}/api/now/v1/clotho/put'
 
         j = {
@@ -56,7 +61,7 @@ class ServiceNow:
             },
             'values': [
                 {
-                    'timestamp': datetime.datetime.utcnow().replace(microsecond=0).isoformat(),
+                    'timestamp': timestamp,
                     'value': value
                 }
             ]
