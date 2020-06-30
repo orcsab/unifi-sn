@@ -4,6 +4,7 @@
 import requests
 import json
 import os
+import sys
 import configparser
 
 import urllib3
@@ -25,11 +26,13 @@ class Unifi:
     # file with credentials in the same. Note that some online docs I read said the ui.com
     # credentials won't work. So I created a separate admin account.
     def __init__ (self, cfgfile):
-        if not os.path.isfile(cfgfile):
-            raise Exception (f'__init__: no such file: {cfgfile}')
+        file = os.path.join (sys.path[0], cfgfile)
+
+        if not os.path.isfile(file):
+            raise Exception (f'__init__: no such file: {file}')
 
         config = configparser.ConfigParser()
-        config.read(cfgfile)
+        config.read(file)
 
         self.body = {
             "username": config['credentials']['name'],

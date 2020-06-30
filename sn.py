@@ -7,6 +7,7 @@ import json
 import datetime
 import configparser
 import os
+import sys
 
 from pprint import pprint
 
@@ -17,11 +18,13 @@ class ServiceNow:
     instance = ''
 
     def __init__ (self, cfgfile):
-        if not os.path.isfile(cfgfile):
-            raise Exception (f'__init__: no such file: {cfgfile}')
+        file = os.path.join (sys.path[0], cfgfile)
+
+        if not os.path.isfile(file):
+            raise Exception (f'__init__: no such file: {file}')
 
         config = configparser.ConfigParser()
-        config.read(cfgfile)
+        config.read(file)
 
         self.instance = config['instance']['url']
         self.session = requests.Session()
