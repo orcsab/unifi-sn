@@ -11,6 +11,7 @@ unifiPass = getpass.getpass(prompt='Unifi Password: ', stream=None)
 
 snAdmin = 'admin'
 snPass = getpass.getpass(prompt='ServiceNow Password: ', stream=None)
+snTable = 'x_snc_home_wifi_clients'
 
 # Fetch all active clients from my home Wifi.
 controller = Unifi("raspberrypi.local", 8443, unifiAdmin, unifiPass)
@@ -22,7 +23,7 @@ pprint (activeClients)
 # Get the last recording of active clients from the wifi client table in my
 # instance.
 sn = ServiceNow ('https://drummonds.service-now.com', snAdmin, snPass)
-ledger = sn.getRecords('x_snc_home_wifi_clients')
+ledger = sn.getRecords(snTable)
 
 print ('LEDGER')
 pprint (ledger)
@@ -31,15 +32,21 @@ pprint (ledger)
 # not know about. It will also record time series in MetricBase for each
 # active client.
 for c in activeClients:
-    found = 0
+    sysId = 0
     for item in ledger:
         if item['id'] == c['_id']:
-            found = 1
+            sysId = item['sys_id']
 
-    if found == 0:
+    if sysId == 0:
         r = {
             "id": c['_id'],
             "name": c['hostname']
         }
-        print (f'adding record {r}')
-        sn.addRecord ('x_snc_home_wifi_clients', r)
+        print (f'adding new active device to {snTable}: {c["hostname"]}')
+        newRecord = sn.addRecord ('x_snc_home_wifi_clients', r)
+        sysId = newRecord['sys_id']
+
+    metrics = ['noise', 'signal', 'latest_assoc_time', 'satisfaction', 'assoc_time']
+    for m in metrics:
+        print (f'addMetric for {c["hostname"]}: {snTable}, {sysId}, {m}, {c[m]}')
+        sn.addMetric(snTable, sysId, m, c[m])
