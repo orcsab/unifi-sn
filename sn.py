@@ -19,6 +19,9 @@ class ServiceNow:
     def getRecords (self, table):
         url = f"{self.instance}/api/now/table/{table}"
         r = self.session.get (url, headers=self.headers)
+        if r.status_code != 200:
+            raise Exception (f'getRecords failed with code {r.status_code}: {r}')
+
         return r.json()['result']
 
     def addRecord (self, table, record):
