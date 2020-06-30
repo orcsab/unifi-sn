@@ -6,23 +6,17 @@ import datetime
 from unifi import Unifi
 from sn import ServiceNow
 
-unifiAdmin = 'api' # a read only admin account I created on the controller
-unifiPass = getpass.getpass(prompt='Unifi Password: ', stream=None)
-
-snAdmin = 'admin'
-snPass = getpass.getpass(prompt='ServiceNow Password: ', stream=None)
-snTable = 'x_snc_home_wifi_clients'
-
 # Fetch all active clients from my home Wifi.
-controller = Unifi("raspberrypi.local", 8443, unifiAdmin, unifiPass)
+controller = Unifi('unifi.cfg')
 name = controller.getSiteName("SingHonk")
 activeClients = controller.getClients(name)
 timestamp = datetime.datetime.utcnow().replace(microsecond=0).isoformat()
 
 # Get the last recording of active clients from the wifi client table in my
 # instance.
-sn = ServiceNow ('https://drummonds.service-now.com', snAdmin, snPass)
-ledger = sn.getRecords(snTable)
+sn = ServiceNow ('sn.cfg')
+snTable = 'x_snc_home_wifi_clients'
+ledger = sn.getRecords('x_snc_home_wifi_clients')
 
 # This loop will add to the table (ledger) any active clients that it does
 # not know about. It will also record time series in MetricBase for each
@@ -34,12 +28,17 @@ for c in activeClients:
             sysId = item['sys_id']
 
     if sysId == 0:
+        # Debugging hopefully. Sometimes I get a strange client that seems to lack
+        # a host name.
+        if 'hostname' not in c:
+            raise Exception (f'no hostname in client: {c}')
+
         r = {
             "id": c['_id'],
             "name": c['hostname']
         }
         print (f'adding new active device to {snTable}: {c["hostname"]}')
-        newRecord = sn.addRecord ('x_snc_home_wifi_clients', r)
+        newRecord = sn.addRecord (snTable, r)
         sysId = newRecord['sys_id']
 
     metrics = ['noise', 'signal', 'latest_assoc_time', 'satisfaction', 'assoc_time']

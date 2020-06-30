@@ -5,6 +5,8 @@
 import requests
 import json
 import datetime
+import configparser
+import os
 
 from pprint import pprint
 
@@ -14,10 +16,17 @@ class ServiceNow:
     session = 0
     instance = ''
 
-    def __init__ (self, instance, usr, pwd):
-        self.instance = instance
+    def __init__ (self, cfgfile):
+        if not os.path.isfile(cfgfile):
+            raise Exception (f'__init__: no such file: {cfgfile}')
+
+        config = configparser.ConfigParser()
+        config.read(cfgfile)
+
+        self.instance = config['instance']['url']
         self.session = requests.Session()
-        self.session.auth = (usr, pwd)
+        self.session.auth = (config['credentials']['name'],
+                             config['credentials']['pass'])
 
     # getRecords
     # Get all records from the named table.

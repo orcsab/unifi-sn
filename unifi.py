@@ -3,7 +3,9 @@
 
 import requests
 import json
-from pprint import pprint
+import os
+import configparser
+
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -19,16 +21,22 @@ class Unifi:
 
 
     # Constructor
-    # Build the connection to the Unifi controller with a host name, port, and
-    # admin credentials. Note that some online docs I read said the ui.com
+    # Build the connection to the Unifi controller specified in the passed config
+    # file with credentials in the same. Note that some online docs I read said the ui.com
     # credentials won't work. So I created a separate admin account.
-    def __init__ (self, host, port, usr, pwd):
+    def __init__ (self, cfgfile):
+        if not os.path.isfile(cfgfile):
+            raise Exception (f'__init__: no such file: {cfgfile}')
+
+        config = configparser.ConfigParser()
+        config.read(cfgfile)
+
         self.body = {
-            "username": usr,
-            "password": pwd
+            "username": config['credentials']['name'],
+            "password": config['credentials']['pass']
         }
-        self.host = host
-        self.port = port
+        self.host = config['controller']['hostname']
+        self.port = config['controller']['port']
 
         # Open a session for capturing cookies
         self.session = requests.Session()
