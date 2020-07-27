@@ -44,6 +44,9 @@ class ServiceNow:
     # addRecord
     # Add the JSON in 'record' to the table. If there is a field mismatch This
     # will behave unpredictably.
+    # table: the table to which the record will be added
+    # record: the record to add. must use fields in the aforementioned table or expect a crash
+    # returns: the added record
     def addRecord (self, table, record):
         url = f"{self.instance}/api/now/table/{table}"
         r = self.session.post (url, headers=self.headers, data=json.dumps(record))
@@ -53,7 +56,7 @@ class ServiceNow:
         else:
             pprint(r.json())
 
-        return r.json()
+        return r.json()[result]
 
     # addMetric
     # Add a metric to the time series. Table, sysId and metric name must be specified.
