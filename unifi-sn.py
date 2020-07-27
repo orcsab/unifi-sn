@@ -31,7 +31,8 @@ for c in activeClients:
         # Debugging hopefully. Sometimes I get a strange client that seems to lack
         # a host name.
         if 'hostname' not in c:
-            raise Exception (f'no hostname in client: {c}')
+            c['hostname'] = 'UNKNOWN'
+            # raise Exception (f'no hostname in client: {c}')
 
         r = {
             "id": c['_id'],
@@ -43,5 +44,5 @@ for c in activeClients:
 
     metrics = ['noise', 'signal', 'latest_assoc_time', 'satisfaction', 'assoc_time']
     for m in metrics:
-        print (f'addMetric for {c["hostname"]}: {snTable}, {sysId}, {m}, {c[m]}, {timestamp}')
-        sn.addMetric(snTable, sysId, m, c[m], timestamp)
+        # print (f'addMetric for {c["hostname"]}: {snTable}, {sysId}, {m}_dense, {c[m]}, {timestamp}')
+        sn.addMetric(snTable, sysId, f"{m}_dense", c[m], timestamp)
