@@ -56,7 +56,7 @@ class ServiceNow:
         else:
             pprint(r.json())
 
-        return r.json()[result]
+        return r.json()['result']
 
     # addMetric
     # Add a metric to the time series. Table, sysId and metric name must be specified.
